@@ -477,6 +477,7 @@ std::atomic<uint64_t> *Server::GetClientID() {
   return &client_id_;
 }
 
+// 调用 Cron 类
 void Server::cron() {
   uint64_t counter = 0;
   while (!stop_) {
@@ -509,6 +510,7 @@ void Server::cron() {
     }
     cleanupExitedSlaves();
     counter++;
+    // 100ms 是一个时钟嘀嗒
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
   }
 }

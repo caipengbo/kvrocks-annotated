@@ -8,6 +8,7 @@
 
 #include "encoding.h"
 
+// Redis数据接口的type
 enum RedisType {
   kRedisNone,
   kRedisString,
@@ -18,7 +19,7 @@ enum RedisType {
   kRedisBitmap,
   kRedisSortedint,
 };
-
+// Redis 命令
 enum RedisCommand {
   kRedisCmdLSet,
   kRedisCmdLInsert,
@@ -74,6 +75,7 @@ class InternalKey {
   char prealloc_[256];
 };
 
+// 描述metadata
 class Metadata {
  public:
   uint8_t flags;
@@ -124,10 +126,12 @@ class SortedintMetadata : public Metadata {
 
 class ListMetadata : public Metadata {
  public:
+  // list结构和其他 metadata 的基础上添加 head 和 tail 两部分
   uint64_t head;
   uint64_t tail;
   explicit ListMetadata(bool generate_version = true);
  public:
+  // 所以需要重写encode和decode
   void Encode(std::string *dst) override;
   rocksdb::Status Decode(const std::string &bytes) override;
 };

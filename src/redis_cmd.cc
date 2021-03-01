@@ -4507,6 +4507,7 @@ class CommandSlotsCheck : public Commander {
 }}
 
 using CommanderFactory = std::function<std::unique_ptr<Commander>()>;
+// 命令表
 std::map<std::string, CommanderFactory> command_table = {
     ADD_CMD("auth",      CommandAuth),
     ADD_CMD("ping",      CommandPing),

@@ -41,6 +41,7 @@ class Worker {
   void KillClient(Redis::Connection *self, uint64_t id, std::string addr, bool skipme, int64_t *killed);
   void KickoutIdleClients(int timeout);
 
+  // ??? 为何要维护一个Server呢？
   Server *svr_;
 
  private:

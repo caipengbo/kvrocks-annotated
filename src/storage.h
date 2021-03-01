@@ -15,13 +15,14 @@
 #include "lock_manager.h"
 #include "config.h"
 
+// 为了避免Key冲突，使用不同的Column Family ID
 enum ColumnFamilyID{
   kColumnFamilyIDDefault,
   kColumnFamilyIDMetadata,
   kColumnFamilyIDZSetScore,
   kColumnFamilyIDPubSub,
 };
-
+// 存储引擎
 namespace Engine {
 extern const char *kPubSubColumnFamilyName;
 extern const char *kZSetScoreColumnFamilyName;
@@ -30,6 +31,8 @@ extern const char *kSubkeyColumnFamilyName;
 extern const char *kSlotMetadataColumnFamilyName;
 extern const char *kSlotColumnFamilyName;
 
+// 为存储提供统一的接口
+// 调用rocksdb接口，将数据存入rocksdb
 class Storage {
  public:
   explicit Storage(Config *config);
