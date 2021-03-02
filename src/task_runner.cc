@@ -3,6 +3,7 @@
 #include <thread>
 #include "util.h"
 
+// 注册任务
 Status TaskRunner::Publish(Task task) {
   mu_.lock();
   if (stop_) {
@@ -58,6 +59,7 @@ void TaskRunner::run() {
       task = task_queue_.front();
       task_queue_.pop_front();
       lock.unlock();
+      // 执行任务
       if (task.callback) task.callback(task.arg);
       lock.lock();
     }

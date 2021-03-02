@@ -5,6 +5,7 @@
 #include <memory>
 #include <rocksdb/table_properties.h>
 
+// RocksDB 允许使用自定义的 TablePropertiesCollector 来搜集 SST 上的 properties 并写入到对应文件中去
 class CompactOnExpiredCollector : public rocksdb::TablePropertiesCollector {
  public:
   explicit CompactOnExpiredCollector(const std::string &cf_name, float trigger_threshold)

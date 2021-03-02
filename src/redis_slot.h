@@ -9,15 +9,17 @@
 #include "encoding.h"
 #include "redis_db.h"
 
+// KVRocks 为了支持codis协议，才设计了slot
+
 // crc32
 #define HASH_SLOTS_MASK 0x000003ff
-#define HASH_SLOTS_SIZE (HASH_SLOTS_MASK + 1)
+#define HASH_SLOTS_SIZE (HASH_SLOTS_MASK + 1)  // 1024
 
 const uint32_t IEEE_POLY = 0xedb88320;
 extern uint32_t crc32tab[256];
 
 typedef struct {
-  uint32_t slot_num;
+  uint32_t slot_num;  // 指的是slot的下标
   uint64_t count;
 } SlotCount;
 

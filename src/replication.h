@@ -27,7 +27,7 @@ enum ReplState {
   kReplError,
 };
 
-
+// Master
 class FeedSlaveThread {
  public:
   explicit FeedSlaveThread(Server *srv, Redis::Connection *conn, rocksdb::SequenceNumber next_repl_seq)
@@ -53,7 +53,7 @@ class FeedSlaveThread {
   void loop();
   void checkLivenessIfNeed();
 };
-
+// Slave侧
 class ReplicationThread {
  public:
   explicit ReplicationThread(std::string host, uint32_t port,

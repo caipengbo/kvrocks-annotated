@@ -44,7 +44,7 @@ uint32_t CRC32Update(uint32_t crc, const char *buf, int len) {
   }
   return ~crc;
 }
-
+// 根据key获得对应的slot num
 uint32_t GetSlotNumFromKey(const std::string &key) {
   auto tag = GetTagFromKey(key);
   if (tag.empty()) {
@@ -124,6 +124,7 @@ uint64_t SlotInternalKey::GetVersion() const {
   return version_;
 }
 
+// slot内部的key
 void SlotInternalKey::Encode(std::string *out) {
   out->clear();
   size_t pos = 0;
@@ -133,6 +134,7 @@ void SlotInternalKey::Encode(std::string *out) {
   } else {
     buf_ = new char[total];
   }
+  // slot_num + version + key
   EncodeFixed32(buf_ + pos, slot_num_);
   pos += 4;
   EncodeFixed64(buf_ + pos, version_);
@@ -622,12 +624,13 @@ rocksdb::Status Slot::AddKey(const Slice &key) {
   SlotInternalKey(key, metadata.version).Encode(&slot_key);
   s = db_->Get(read_options, slot_key_cf_handle_, slot_key, &raw_bytes);
   if (s.ok()) {
-    return rocksdb::Status::OK();
+    return rocksdb::Status::OK();  // 存在的话，直接返回 Ok
   } else if (!s.IsNotFound()) {
     return s;
   }
 
   rocksdb::WriteBatch batch;
+  // 将改数据插入
   batch.Put(slot_key_cf_handle_, slot_key, NULL);
 
   metadata.size++;

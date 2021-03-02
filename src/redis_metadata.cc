@@ -182,6 +182,7 @@ timeval Metadata::Time() const {
   return created_at;
 }
 
+// 是否expired
 bool Metadata::Expired() const {
   int64_t now;
   rocksdb::Env::Default()->GetCurrentTime(&now);

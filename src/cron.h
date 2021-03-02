@@ -6,6 +6,7 @@
 #include <string>
 #include "status.h"
 
+// 周期设置（精确到分钟，再细的粒度，根据cron函数中的时间嘀嗒进行判断）
 struct Scheduler {
   int minute;
   int hour;
@@ -16,6 +17,8 @@ struct Scheduler {
   std::string ToString() const;
 };
 
+// 这个相当于一个时间设置器，根据param提供的时间数据，封装成 Scheduler(时间点) 数据结构
+// 提供到时判断函数 IsTimeMatch
 class Cron {
  public:
   Cron() = default;

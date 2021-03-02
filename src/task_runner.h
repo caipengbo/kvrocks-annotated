@@ -10,11 +10,13 @@
 
 #include "status.h"
 
+// Task是一个函数对象，包括回调函数、参数
 struct Task {
   std::function<void(void*)> callback;
   void *arg;
 };
 
+// 线程池
 class TaskRunner {
  public:
   explicit TaskRunner(int n_thread = 1, uint32_t max_queue_size = 10240)

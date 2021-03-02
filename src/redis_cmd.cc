@@ -3416,7 +3416,7 @@ class CommandPubSub : public Commander {
   std::vector<std::string> channels_;
   std::string subcommand_;
 };
-
+//
 class CommandSlaveOf : public Commander {
  public:
   CommandSlaveOf() : Commander("slaveof", 3, false) {}

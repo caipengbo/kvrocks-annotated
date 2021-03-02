@@ -31,6 +31,7 @@ bool MetadataFilter::Filter(int level,
   return metadata.Expired();
 }
 
+// Key 是否 Expired
 bool SubKeyFilter::IsKeyExpired(const InternalKey &ikey, const Slice &value) const {
   std::string metadata_key;
 

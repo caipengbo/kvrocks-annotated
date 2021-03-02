@@ -64,9 +64,11 @@ Status Server::Start() {
     Status s = AddMaster(config_->master_host, static_cast<uint32_t>(config_->master_port));
     if (!s.IsOK()) return s;
   }
+  // 处理文件事件
   for (const auto worker : worker_threads_) {
     worker->Start();
   }
+  // 处理时间事件
   task_runner_.Start();
   // setup server cron thread
   cron_thread_ = std::thread([this]() {
@@ -103,6 +105,7 @@ Status Server::Start() {
     }
   });
 
+  // 支持codis协议
   if (config_->codis_enabled) {
     slotsmgrt_sender_thread_ = new Redis::SlotsMgrtSenderThread(storage_);
     slotsmgrt_sender_thread_->Start();
@@ -477,7 +480,7 @@ std::atomic<uint64_t> *Server::GetClientID() {
   return &client_id_;
 }
 
-// 调用 Cron 类
+// 周期函数
 void Server::cron() {
   uint64_t counter = 0;
   while (!stop_) {
@@ -887,6 +890,7 @@ Status Server::AsyncCompactDB(const std::string &begin_key, const std::string &e
     Slice *begin = nullptr, *end = nullptr;
     if (!begin_key.empty()) begin = new Slice(begin_key);
     if (!end_key.empty()) end = new Slice(end_key);
+    // 调用存储底层的Compact
     svr->storage_->Compact(begin, end);
     svr->db_mu_.lock();
     svr->db_compacting_ = false;
@@ -918,6 +922,7 @@ Status Server::AsyncBgsaveDB() {
   return task_runner_.Publish(task);
 }
 
+// 异步清除旧的备份
 Status Server::AsyncPurgeOldBackups(uint32_t num_backups_to_keep, uint32_t backup_max_keep_hours) {
   Task task;
   task.arg = this;

@@ -88,6 +88,7 @@ void Worker::newConnection(evconnlistener *listener, evutil_socket_t fd,
                                             fd,
                                             BEV_OPT_CLOSE_ON_FREE | evThreadSafeFlags);
   auto conn = new Redis::Connection(bev, worker);
+  // 注册事件：OnRead, OnWrite, OnEvent
   bufferevent_setcb(bev, Redis::Connection::OnRead, Redis::Connection::OnWrite,
                     Redis::Connection::OnEvent, conn);
   bufferevent_enable(bev, EV_READ);
@@ -126,6 +127,7 @@ Status Worker::listen(const std::string &host, int port, int backlog) {
     return Status(Status::NotOK, evutil_socket_error_to_string(EVUTIL_SOCKET_ERROR()));
   }
   evutil_make_socket_nonblocking(fd);
+  // 构建新连接
   auto lev = evconnlistener_new(base_, newConnection, this,
                                 LEV_OPT_CLOSE_ON_FREE, backlog, fd);
   listen_events_.emplace_back(lev);

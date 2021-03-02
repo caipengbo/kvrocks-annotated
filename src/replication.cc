@@ -71,6 +71,7 @@ void FeedSlaveThread::loop() {
   bool is_first_repl_batch = true;
   uint32_t yield_milliseconds = 2000;
   std::vector<std::string> batch_list;
+  // 通过WAL进行迭代发送
   while (!IsStopped()) {
     if (!iter_ || !iter_->Valid()) {
       if (iter_) LOG(INFO) << "WAL was rotated, would reopen again";

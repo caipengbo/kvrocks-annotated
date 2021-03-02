@@ -12,6 +12,7 @@
 #include "storage.h"
 
 namespace Engine {
+// 该功能就是 RocksDB 在 compaction 每一条数据时，都会调用一个 Filter 函数 ,TTL 功能就是这样实现的
 class MetadataFilter : public rocksdb::CompactionFilter {
  public:
   const char *Name() const override { return "MetadataFilter"; }

@@ -5,6 +5,9 @@
 
 #include "storage.h"
 
+// 在Rocksdb中，事件监听器EventListener类包含一系列的回调函数
+// 当特定的RocksDB事件发生时，比如一次落盘或者压缩工作结束，就会被调用。
+// 这些回调接口可以被用于开发一些自定义功能，此处就是为了打一些LOG。
 class EventListener : public rocksdb::EventListener {
  public:
   explicit EventListener(Engine::Storage *storage) : storage_(storage) {}

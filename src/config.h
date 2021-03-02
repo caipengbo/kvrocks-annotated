@@ -76,6 +76,7 @@ struct Config{
   std::string requirepass;
   std::string master_host;
   int master_port = 0;
+  // Compact 和 后台Save的 周期
   Cron compact_cron;
   Cron bgsave_cron;
   CompactionCheckerRange compaction_checker_range{-1, -1};
