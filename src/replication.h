@@ -68,6 +68,7 @@ class ReplicationThread {
   event_base *base_ = nullptr;
 
   // The state machine to manage the asynchronous steps used in replication
+  // TODO: 状态机的状态转移在这里是如何提现的？？？？
   class CallbacksStateMachine {
    public:
     enum class State {

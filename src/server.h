@@ -156,10 +156,10 @@ class Server {
   std::mutex blocking_keys_mu_;
 
   // threads
-  std::thread cron_thread_;
-  std::thread compaction_checker_thread_;
+  std::thread cron_thread_;  // 执行周期任务 Server::cron
+  std::thread compaction_checker_thread_;  // Compaction
 
-  TaskRunner task_runner_;
-  std::vector<WorkerThread *> worker_threads_;
-  std::unique_ptr<ReplicationThread> replication_thread_;
+  TaskRunner task_runner_;  // 处理定时任务
+  std::vector<WorkerThread *> worker_threads_;  // 处理连接请求（网络）
+  std::unique_ptr<ReplicationThread> replication_thread_;  // 主从复制
 };

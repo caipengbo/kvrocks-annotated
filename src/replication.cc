@@ -202,6 +202,7 @@ LOOP_LABEL:
   }
 }
 
+// 增量同步状态机
 void ReplicationThread::CallbacksStateMachine::Start() {
   if (handlers_.empty()) {
     return;
@@ -316,6 +317,7 @@ void ReplicationThread::run() {
     LOG(ERROR) << "[replication] Failed to create new ev base";
     return;
   }
+  // 增量同步阶段（状态机CallbacksStateMachine启动）
   psync_steps_.Start();
 
   auto timer = event_new(base_, -1, EV_PERSIST, EventTimerCB, this);

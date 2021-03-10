@@ -20,13 +20,14 @@ rocksdb::Status Hash::Size(const Slice &user_key, uint32_t *ret) {
   *ret = metadata.size;
   return rocksdb::Status::OK();
 }
-
+// 1. 先找metadata
+// 2. metadata找到，构建internalKey，再去查找值
 rocksdb::Status Hash::Get(const Slice &user_key, const Slice &field, std::string *value) {
   std::string ns_key;
   AppendNamespacePrefix(user_key, &ns_key);
   HashMetadata metadata(false);
   rocksdb::Status s = GetMetadata(ns_key, &metadata);
-  if (!s.ok()) return s;
+  if (!s.ok()) return s;  // 能找到、且非expired的才是 s.ok
   LatestSnapShot ss(db_);
   rocksdb::ReadOptions read_options;
   read_options.snapshot = ss.GetSnapShot();

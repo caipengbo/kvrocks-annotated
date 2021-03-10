@@ -58,6 +58,7 @@ rocksdb::Status Database::Expire(const Slice &user_key, int timestamp) {
   rocksdb::Status s = db_->Get(rocksdb::ReadOptions(), metadata_cf_handle_, ns_key, &value);
   if (!s.ok()) return s;
   metadata.Decode(value);
+  // 检查是否Expired
   if (metadata.Expired()) {
     return rocksdb::Status::NotFound("the key was expired");
   }
@@ -92,6 +93,7 @@ rocksdb::Status Database::Del(const Slice &user_key) {
   if (metadata.Expired()) {
     return rocksdb::Status::NotFound("the key was expired");
   }
+  // 删除metadata
   return storage_->Delete(rocksdb::WriteOptions(), metadata_cf_handle_, ns_key);
 }
 

@@ -6,6 +6,7 @@
 
 namespace Redis {
 
+// 获取数据
 rocksdb::Status String::getRawValue(const std::string &ns_key, std::string *raw_value) {
   raw_value->clear();
 

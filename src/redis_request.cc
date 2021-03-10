@@ -200,6 +200,7 @@ void Request::ExecuteCommands(Connection *conn) {
     auto start = std::chrono::high_resolution_clock::now();
     bool is_profiling = isProfilingEnabled(cmd_name);
     svr_->IncrExecutingCommandNum();
+    // 执行命令
     s = conn->current_cmd_->Execute(svr_, conn, &reply);
     svr_->DecrExecutingCommandNum();
     auto end = std::chrono::high_resolution_clock::now();

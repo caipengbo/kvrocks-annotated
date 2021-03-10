@@ -28,7 +28,7 @@ bool MetadataFilter::Filter(int level,
              << "namespace: " << ns
              << ", key: " << user_key
              << ", result: " << (metadata.Expired() ? "deleted" : "reserved");
-  return metadata.Expired();
+  return metadata.Expired();  // metadata 过期才会被Compact
 }
 
 // Key 是否 Expired
@@ -46,6 +46,7 @@ bool SubKeyFilter::IsKeyExpired(const InternalKey &ikey, const Slice &value) con
     if (!stor_->IncrDBRefs().IsOK()) {  // the db is closing, don't use DB and cf_handles
       return false;
     }
+    // kMetadataColumnFamilyName
     rocksdb::Status s = db->Get(rocksdb::ReadOptions(), (*cf_handles)[1], metadata_key, &bytes);
     stor_->DecrDBRefs();
     cached_key_ = std::move(metadata_key);
@@ -66,7 +67,7 @@ bool SubKeyFilter::IsKeyExpired(const InternalKey &ikey, const Slice &value) con
       return false;
     }
   }
-  // the metadata was not found
+  // the metadata was not found (说明被快速删除了)
   if (cached_metadata_.empty()) return true;
   // the metadata is cached
   Metadata metadata(kRedisNone, false);
@@ -118,6 +119,7 @@ bool SlotKeyFilter::IsKeyDeleted(const SlotInternalKey &ikey, const Slice &value
     if (!stor_->IncrDBRefs().IsOK()) {  // the db is closing, don't use DB and cf_handles
       return false;
     }
+    // kSlotMetadataColumnFamilyName
     rocksdb::Status s = db->Get(rocksdb::ReadOptions(), (*cf_handles)[4], metadata_key, &bytes);
     stor_->DecrDBRefs();
     cached_key_ = std::move(metadata_key);

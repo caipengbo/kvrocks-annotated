@@ -25,6 +25,7 @@
 
 namespace Engine {
 
+// 定义的不同的CF的名字，用于存储不同的类别的内容，防止冲突
 const char *kPubSubColumnFamilyName = "pubsub";
 const char *kZSetScoreColumnFamilyName = "zset_score";
 const char *kMetadataColumnFamilyName = "metadata";
@@ -124,7 +125,7 @@ Status Storage::SetDBOption(const std::string &key, const std::string &value) {
   if (!s.ok()) return Status(Status::NotOK, s.ToString());
   return Status::OK();
 }
-
+// 创建CF
 Status Storage::CreateColumnFamilies(const rocksdb::Options &options) {
   rocksdb::DB *tmp_db;
   rocksdb::ColumnFamilyOptions cf_options(options);
@@ -396,6 +397,7 @@ rocksdb::Status Storage::Delete(const rocksdb::WriteOptions &options,
                                 const rocksdb::Slice &key) {
   rocksdb::WriteBatch batch;
   batch.Delete(cf_handle, key);
+  // 删除操作仅删除 metadata
   if (config_->codis_enabled && cf_handle == GetCFHandle("metadata")) {
     std::vector<std::string> delete_keys;
     std::string ns, user_key;
