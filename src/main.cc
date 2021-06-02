@@ -34,6 +34,7 @@ struct Options {
   bool show_usage = false;
 };
 
+// 信号处理函数
 extern "C" void signal_handler(int sig) {
   if (hup_handler) hup_handler();
 }
@@ -275,6 +276,7 @@ int main(int argc, char* argv[]) {
   auto opts = parseCommandLineOptions(argc, argv);
   if (opts.show_usage) usage(argv[0]);
 
+  // 加载 kvrocks配置
   Config config;
   Status s = config.Load(opts.conf_file);
   if (!s.IsOK()) {
@@ -304,6 +306,7 @@ int main(int argc, char* argv[]) {
   }
 
   LOG(INFO) << "Version: " << VERSION << " @" << GIT_COMMIT;
+  // 初始化存储引擎
   Engine::Storage storage(&config);
   s = storage.Open();
   if (!s.IsOK()) {
@@ -311,10 +314,12 @@ int main(int argc, char* argv[]) {
     removePidFile(config.pidfile);
     exit(1);
   }
+  // 初始化服务器
   Server svr(&storage, &config);
   hup_handler = [&svr] {
     if (!svr.IsStopped()) {
       LOG(INFO) << "Bye Bye";
+      // 中断信号处理函数 ->  hup_handler -> Server::Stop()
       svr.Stop();
     }
   };

@@ -6,6 +6,7 @@
 #include <string>
 
 struct command_stat {
+  // 命令被调用的次数和延迟
   std::atomic<uint64_t> calls;
   std::atomic<uint64_t> latency;
 };
@@ -19,6 +20,7 @@ class Stats {
   std::atomic<uint64_t> fullsync_counter = {0};
   std::atomic<uint64_t> psync_err_counter = {0};
   std::atomic<uint64_t> psync_ok_counter = {0};
+  // 命令的统计
   std::map<std::string, command_stat> commands_stats;
 
  public:

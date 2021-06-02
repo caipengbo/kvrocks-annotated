@@ -32,7 +32,7 @@ extern const char *kSlotMetadataColumnFamilyName;
 extern const char *kSlotColumnFamilyName;
 
 // 为存储提供统一的接口
-// 调用rocksdb接口，将数据存入rocksdb
+// 封装底层存储引擎的接口， rocksdb 接口，将数据存入rocksdb
 class Storage {
  public:
   explicit Storage(Config *config);
@@ -85,6 +85,8 @@ class Storage {
   Storage(const Storage &) = delete;
   Storage &operator=(const Storage &) = delete;
 
+  // 备份时候使用的辅助函数
+  // 一些文件操作、解析函数
   class BackupManager {
    public:
     // Master side
@@ -119,7 +121,7 @@ class Storage {
   rocksdb::Env *backup_env_;
   std::shared_ptr<rocksdb::SstFileManager> sst_file_manager_;
   std::shared_ptr<rocksdb::RateLimiter> rate_limiter_;
-  Config *config_ = nullptr;
+  Config *config_ = nullptr;  // KVRocks Config
   std::vector<rocksdb::ColumnFamilyHandle *> cf_handles_;
   LockManager lock_mgr_;
   bool reach_db_size_limit_ = false;

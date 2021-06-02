@@ -14,15 +14,20 @@
 #include "util.h"
 
 Worker::Worker(Server *svr, Config *config, bool repl) : svr_(svr), repl_(repl) {
+  // 创建 event base
   base_ = event_base_new();
   if (!base_) throw std::exception();
 
+  // 创建 event
+  // 参数：event_base, 监听的fd，事件类型及属性，绑定的回调函数，给回调函数的参数
   timer_ = event_new(base_, -1, EV_PERSIST, TimerCB, this);
   timeval tm = {10, 0};
+  // 添加 event
   evtimer_add(timer_, &tm);
 
   int port = repl ? config->repl_port : config->port;
   auto binds = repl ? config->repl_binds : config->binds;
+  // 监听端口
   for (const auto &bind : binds) {
     Status s = listen(bind, port, config->backlog);
     if (!s.IsOK()) {
@@ -84,6 +89,7 @@ void Worker::newConnection(evconnlistener *listener, evutil_socket_t fd,
   }
   event_base *base = evconnlistener_get_base(listener);
   auto evThreadSafeFlags = BEV_OPT_THREADSAFE | BEV_OPT_DEFER_CALLBACKS | BEV_OPT_UNLOCK_CALLBACKS;
+  // 从连接中获取到 bufferevent
   bufferevent *bev = bufferevent_socket_new(base,
                                             fd,
                                             BEV_OPT_CLOSE_ON_FREE | evThreadSafeFlags);
@@ -103,7 +109,7 @@ void Worker::newConnection(evconnlistener *listener, evutil_socket_t fd,
     write(fd, err_msg.data(), err_msg.size());
     conn->Close();
   }
-
+  // 主从复制支持限速（libevent的限速）
   if (worker->rate_limit_group_ != nullptr) {
     bufferevent_add_to_rate_limit_group(bev, worker->rate_limit_group_);
   }
@@ -127,7 +133,7 @@ Status Worker::listen(const std::string &host, int port, int backlog) {
     return Status(Status::NotOK, evutil_socket_error_to_string(EVUTIL_SOCKET_ERROR()));
   }
   evutil_make_socket_nonblocking(fd);
-  // 构建新连接
+  // 构建新连接， 回调函数 newConnection
   auto lev = evconnlistener_new(base_, newConnection, this,
                                 LEV_OPT_CLOSE_ON_FREE, backlog, fd);
   listen_events_.emplace_back(lev);
@@ -136,6 +142,7 @@ Status Worker::listen(const std::string &host, int port, int backlog) {
 
 void Worker::Run(std::thread::id tid) {
   tid_ = tid;
+  // 启动事件循环
   if (event_base_dispatch(base_) != 0) {
     LOG(ERROR) << "[worker] Failed to run server, err: " << strerror(errno);
   }
@@ -334,6 +341,7 @@ void Worker::KillClient(Redis::Connection *self, uint64_t id, std::string addr, 
   conns_mu_.unlock();
 }
 
+// 从 Worker 维护的数据结构中剔除超时的 Client
 void Worker::KickoutIdleClients(int timeout) {
   conns_mu_.lock();
   std::list<std::pair<int, uint64_t>> to_be_killed_conns;

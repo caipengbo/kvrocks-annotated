@@ -73,6 +73,7 @@ void FeedSlaveThread::loop() {
   std::vector<std::string> batch_list;
   // 通过WAL进行迭代发送
   while (!IsStopped()) {
+    // 如果 WALIter无效的话，获取Iter
     if (!iter_ || !iter_->Valid()) {
       if (iter_) LOG(INFO) << "WAL was rotated, would reopen again";
       if (!srv_->storage_->WALHasNewData(next_repl_seq_)
@@ -527,6 +528,7 @@ ReplicationThread::CBState ReplicationThread::fullSyncWriteCB(
   return CBState::NEXT;
 }
 
+// 全量同步的回调函数
 ReplicationThread::CBState ReplicationThread::fullSyncReadCB(bufferevent *bev,
                                                              void *ctx) {
   char *line;
@@ -606,6 +608,7 @@ ReplicationThread::CBState ReplicationThread::fullSyncReadCB(bufferevent *bev,
   return CBState::QUIT;
 }
 
+//
 Status ReplicationThread::parallelFetchFile(const std::vector<std::pair<std::string, uint32_t>> &files) {
   size_t concurrency = 1;
   if (files.size() > 20) {
@@ -701,7 +704,7 @@ Status ReplicationThread::sendAuth(int sock_fd) {
   return Status::OK();
 }
 
-
+// fetch文件
 Status ReplicationThread::fetchFile(int sock_fd, std::string path,
                                     uint32_t crc) {
   size_t line_len, file_size;

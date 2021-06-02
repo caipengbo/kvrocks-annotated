@@ -22,6 +22,7 @@ std::atomic<int>Server::unix_time_ = {0};
 
 Server::Server(Engine::Storage *storage, Config *config) :
   storage_(storage), config_(config) {
+  // Redis命令表
   // init commands stats here to prevent concurrent insert, and cause core
   std::vector<std::string> commands;
   Redis::GetCommandList(&commands);
@@ -29,7 +30,7 @@ Server::Server(Engine::Storage *storage, Config *config) :
     stats_.commands_stats[cmd].calls = 0;
     stats_.commands_stats[cmd].latency = 0;
   }
-
+  // 构建 Worker 和 WorkerThread
   for (int i = 0; i < config->workers; i++) {
     auto worker = new Worker(this, config);
     worker_threads_.emplace_back(new WorkerThread(worker));
@@ -39,7 +40,9 @@ Server::Server(Engine::Storage *storage, Config *config) :
   if (config_->max_replication_mb > 0) {
     max_replication_bytes = (config_->max_replication_mb*MiB)/config_->repl_workers;
   }
+  // 构建 复制Worker
   for (int i = 0; i < config->repl_workers; i++) {
+    // 第三个参数用来标识是否为 复制线程
     auto repl_worker = new Worker(this, config, true);
     repl_worker->SetReplicationRateLimit(max_replication_bytes);
     worker_threads_.emplace_back(new WorkerThread(repl_worker));
@@ -64,11 +67,11 @@ Status Server::Start() {
     Status s = AddMaster(config_->master_host, static_cast<uint32_t>(config_->master_port));
     if (!s.IsOK()) return s;
   }
-  // 处理文件事件
+  // 启动 工作线程 和 复制线程
   for (const auto worker : worker_threads_) {
     worker->Start();
   }
-  // 处理时间事件
+  // 线程池，处理 Task
   task_runner_.Start();
   // setup server cron thread
   cron_thread_ = std::thread([this]() {
@@ -883,6 +886,7 @@ Status Server::AsyncCompactDB(const std::string &begin_key, const std::string &e
   db_compacting_ = true;
   db_mu_.unlock();
 
+  // 构建异步任务
   Task task;
   task.arg = this;
   task.callback = [begin_key, end_key](void *arg) {

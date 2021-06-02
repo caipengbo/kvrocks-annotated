@@ -37,6 +37,7 @@ class Commander {
     return &args_;
   }
   virtual Status Parse(const std::vector<std::string> &args) {
+    // 检查一下参数是否合法
     return Status::OK();
   }
   virtual Status Execute(Server *svr, Connection *conn, std::string *output) {

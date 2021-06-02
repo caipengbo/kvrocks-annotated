@@ -161,7 +161,9 @@ void Request::ExecuteCommands(Connection *conn) {
         conn->SetNamespace(kDefaultNamespace);
       }
     }
+    // 查找命令表
     auto s = LookupCommand(cmd_tokens.front(), &conn->current_cmd_, conn->IsRepl());
+    // 判断命令是否合法
     if (!s.IsOK()) {
       conn->Reply(Redis::Error("ERR unknown command"));
       continue;
@@ -170,6 +172,8 @@ void Request::ExecuteCommands(Connection *conn) {
       conn->Reply(Redis::Error("ERR restoring the db from backup"));
       break;
     }
+    // 查看参数是否合法
+    // 1. 数目是否合法
     int arity = conn->current_cmd_->GetArity();
     int tokens = static_cast<int>(cmd_tokens.size());
     if ((arity > 0 && tokens != arity)
@@ -177,6 +181,7 @@ void Request::ExecuteCommands(Connection *conn) {
       conn->Reply(Redis::Error("ERR wrong number of arguments"));
       continue;
     }
+    // 参数类型是否合法
     conn->current_cmd_->SetArgs(cmd_tokens);
     s = conn->current_cmd_->Parse(cmd_tokens);
     if (!s.IsOK()) {
@@ -204,6 +209,7 @@ void Request::ExecuteCommands(Connection *conn) {
     s = conn->current_cmd_->Execute(svr_, conn, &reply);
     svr_->DecrExecutingCommandNum();
     auto end = std::chrono::high_resolution_clock::now();
+    // 统计命令的执行时间
     uint64_t duration = std::chrono::duration_cast<std::chrono::microseconds>(end-start).count();
     if (is_profiling) recordProfilingSampleIfNeed(cmd_name, duration);
     svr_->SlowlogPushEntryIfNeeded(conn->current_cmd_->Args(), duration);

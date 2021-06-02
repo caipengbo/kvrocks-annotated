@@ -15,6 +15,7 @@ Status TaskRunner::Publish(Task task) {
     return Status(Status::NotOK, "the task queue was reached max length");
   }
   task_queue_.emplace_back(task);
+  // notify 条件变量
   cond_.notify_all();
   mu_.unlock();
   return Status::OK();
@@ -22,6 +23,7 @@ Status TaskRunner::Publish(Task task) {
 
 void TaskRunner::Start() {
   stop_ = false;
+  // 这个线程池，每次都会创建thread, 没有常驻线程(核心线程)
   for (int i = 0; i < n_thread_; i++) {
     threads_.emplace_back(std::thread([this]() {
       Util::ThreadSetName("task-runner");
@@ -53,13 +55,15 @@ void TaskRunner::Purge() {
 void TaskRunner::run() {
   Task task;
   std::unique_lock<std::mutex> lock(mu_);
+  // 如果不停止会一直循环
   while (!stop_) {
+    // 条件变量，直到有 Task 被 Publish
     cond_.wait(lock, [this]() -> bool { return stop_ || !task_queue_.empty();});
     while (!stop_ && !task_queue_.empty()) {
+      // 执行队列中的任务
       task = task_queue_.front();
       task_queue_.pop_front();
       lock.unlock();
-      // 执行任务
       if (task.callback) task.callback(task.arg);
       lock.lock();
     }

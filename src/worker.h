@@ -52,11 +52,11 @@ class Worker {
 
 
   event_base *base_;
-  event *timer_;
+  event *timer_;  // event列表
   std::thread::id tid_;
-  std::vector<evconnlistener*> listen_events_;
+  std::vector<evconnlistener*> listen_events_;  // 连接事件
   std::mutex conns_mu_;
-  std::map<int, Redis::Connection*> conns_;
+  std::map<int, Redis::Connection*> conns_;  // 已经建立的连接
   std::map<int, Redis::Connection*> monitor_conns_;
   int last_iter_conn_fd = 0;   // fd of last processed connection in previous cron
 

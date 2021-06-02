@@ -125,7 +125,7 @@ Status Storage::SetDBOption(const std::string &key, const std::string &value) {
   if (!s.ok()) return Status(Status::NotOK, s.ToString());
   return Status::OK();
 }
-// 创建CF
+// 创建KVRocks需要的CF
 Status Storage::CreateColumnFamilies(const rocksdb::Options &options) {
   rocksdb::DB *tmp_db;
   rocksdb::ColumnFamilyOptions cf_options(options);
@@ -165,7 +165,9 @@ Status Storage::Open(bool read_only) {
   size_t subkey_block_cache_size = config_->RocksDB.subkey_block_cache_size*MiB;
   rocksdb::Options options;
   InitOptions(&options);
+  // 创建KVRocks需要的 CF 
   CreateColumnFamilies(options);
+  // 各个CF 的 Option
   rocksdb::BlockBasedTableOptions metadata_table_opts;
   metadata_table_opts.filter_policy.reset(rocksdb::NewBloomFilterPolicy(10, true));
   metadata_table_opts.block_cache = rocksdb::NewLRUCache(metadata_block_cache_size, -1, false, 0.75);
@@ -210,6 +212,7 @@ Status Storage::Open(bool read_only) {
   auto s = rocksdb::DB::ListColumnFamilies(options, config_->db_dir, &old_column_families);
   if (!s.ok()) return Status(Status::NotOK, s.ToString());
   if (!config_->codis_enabled && column_families.size() != old_column_families.size()) {
+    // 打开失败
     return Status(Status::NotOK, "the db enabled codis mode at first open, please set codis-enabled 'yes'");
   }
   if (config_->codis_enabled && column_families.size() == old_column_families.size()) {
@@ -240,6 +243,7 @@ Status Storage::Open(bool read_only) {
     column_families.emplace_back(rocksdb::ColumnFamilyDescriptor(kSlotColumnFamilyName, slotkey_opts));
   }
 
+  // 统计存储引擎的时间
   auto start = std::chrono::high_resolution_clock::now();
   if (read_only) {
     s = rocksdb::DB::OpenForReadOnly(options, config_->db_dir, column_families, &cf_handles_, &db_);
@@ -253,6 +257,7 @@ Status Storage::Open(bool read_only) {
     return Status(Status::DBOpenErr, s.ToString());
   }
   LOG(INFO) << "[storage] Success to load the data from disk: " << duration << " ms";
+  // 
   if (!read_only) {
     // open backup engine
     rocksdb::BackupableDBOptions bk_option(config_->backup_dir);

@@ -51,6 +51,7 @@ void Connection::OnRead(struct bufferevent *bev, void *ctx) {
   auto conn = static_cast<Connection *>(ctx);
 
   conn->SetLastInteraction();
+  // 读取连接中的数据
   auto s = conn->req_.Tokenize(conn->Input());
   if (!s.IsOK()) {
     conn->EnableFlag(Redis::Connection::kCloseAfterReply);
@@ -70,6 +71,7 @@ void Connection::OnWrite(struct bufferevent *bev, void *ctx) {
 
 void Connection::OnEvent(bufferevent *bev, int16_t events, void *ctx) {
   auto conn = static_cast<Connection *>(ctx);
+  // 出错
   if (events & BEV_EVENT_ERROR) {
     LOG(ERROR) << "[connection] Going to remove the client: " << conn->GetAddr()
                << ", while encounter error: "
@@ -77,12 +79,14 @@ void Connection::OnEvent(bufferevent *bev, int16_t events, void *ctx) {
     conn->Close();
     return;
   }
+  // 连接关闭
   if (events & BEV_EVENT_EOF) {
     DLOG(INFO) << "[connection] Going to remove the client: " << conn->GetAddr()
                << ", while closed by client";
     conn->Close();
     return;
   }
+  // 超时
   if (events & BEV_EVENT_TIMEOUT) {
     DLOG(INFO) << "[connection] The client: " << conn->GetAddr()  << "] reached timeout";
     bufferevent_enable(bev, EV_READ | EV_WRITE);

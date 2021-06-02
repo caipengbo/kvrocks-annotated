@@ -27,13 +27,14 @@ class Connection {
 
   void Close();
   void Detach();
-  static void OnRead(struct bufferevent *bev, void *ctx);
-  static void OnWrite(struct bufferevent *bev, void *ctx);
-  static void OnEvent(bufferevent *bev, int16_t events, void *ctx);
-  void Reply(const std::string &msg);
+  static void OnRead(struct bufferevent *bev, void *ctx);  // 有数据可读
+  static void OnWrite(struct bufferevent *bev, void *ctx);  // buffer 中的数据已读完
+  static void OnEvent(bufferevent *bev, int16_t events, void *ctx);  // 其他的一些事件处理，如关闭，超时，出错
+  void Reply(const std::string &msg);  // 回复
   void SendFile(int fd);
   std::string ToString();
 
+  // Pub/Sub 相关
   typedef std::function<void(std::string, int)> unsubscribe_callback;
   void SubscribeChannel(const std::string &channel);
   void UnSubscribeChannel(const std::string &channel);
@@ -76,6 +77,7 @@ class Connection {
   evbuffer *Output() { return bufferevent_get_output(bev_); }
   bufferevent *GetBufferEvent() { return bev_; }
 
+  // 当前正在处理的命令
   std::unique_ptr<Commander> current_cmd_;
 
  private:
@@ -92,8 +94,8 @@ class Connection {
   time_t create_time_;
   time_t last_interaction_;
 
-  bufferevent *bev_;
-  Request req_;
+  bufferevent *bev_;  // 该连接的 bufferevent
+  Request req_;  // 请求
   Worker *owner_;
   std::vector<std::string> subscribe_channels_;
   std::vector<std::string> subcribe_patterns_;
